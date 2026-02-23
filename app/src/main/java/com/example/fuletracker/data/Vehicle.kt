@@ -12,5 +12,6 @@ data class Vehicle(
     val model: String = "",
     val year: Int? = null,
     val licensePlate: String = "",
-    val imageUrl: String? = null
+    val imageUrl: String? = null,
+    val fuelType: String = "Petrol"
 )

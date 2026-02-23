@@ -75,13 +75,19 @@ class FuelViewModel(application: Application) : AndroidViewModel(application) {
         else repository.getActiveTripByType(id, "QUICK_B")
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
+    fun getFuelPrice(fuelType: String): Double {
+        return prefs.getFloat("price_$fuelType", 0f).toDouble()
+    }
+
+    fun setFuelPrice(fuelType: String, price: Double) {
+        prefs.edit().putFloat("price_$fuelType", price.toFloat()).apply()
+        if (getOnboardingStep() == 0) setOnboardingStep(1)
+    }
+
+    // Keep this for backward compatibility with onboarding check
     var petrolPrice: Double
-        get() = prefs.getFloat("petrol_price", 0f).toDouble()
-        set(value) {
-            prefs.edit().putFloat("petrol_price", value.toFloat()).apply()
-            // advance onboarding if on step 0
-            if (getOnboardingStep() == 0) setOnboardingStep(1)
-        }
+        get() = getFuelPrice("Petrol")
+        set(value) { setFuelPrice("Petrol", value) }
 
     init {
         viewModelScope.launch {
@@ -97,19 +103,31 @@ class FuelViewModel(application: Application) : AndroidViewModel(application) {
         _selectedVehicleId.value = vehicleId
     }
 
-    fun addVehicle(name: String, make: String, model: String, licensePlate: String) {
+    fun addVehicle(name: String, make: String, model: String, licensePlate: String, fuelType: String = "Petrol") {
         viewModelScope.launch {
             val id = repository.insertVehicle(
-                Vehicle(name = name, make = make, model = model, licensePlate = licensePlate)
+                Vehicle(name = name, make = make, model = model,
+                    licensePlate = licensePlate, fuelType = fuelType)
             )
             if (_selectedVehicleId.value == null) {
                 _selectedVehicleId.value = id.toInt()
             }
-            // advance onboarding if on step 1
             if (getOnboardingStep() == 1) setOnboardingStep(2)
         }
     }
-
+    fun editVehicle(vehicle: Vehicle, name: String, make: String, model: String, licensePlate: String, fuelType: String) {
+        viewModelScope.launch {
+            repository.updateVehicle(
+                vehicle.copy(
+                    name = name,
+                    make = make,
+                    model = model,
+                    licensePlate = licensePlate,
+                    fuelType = fuelType
+                )
+            )
+        }
+    }
     fun deleteVehicle(vehicle: Vehicle) {
         viewModelScope.launch {
             repository.deleteVehicle(vehicle)
@@ -127,7 +145,7 @@ class FuelViewModel(application: Application) : AndroidViewModel(application) {
                     vehicleId = vehicleId,
                     odometer = odometer,
                     fuelAmount = fuelAmount,
-                    pricePerLiter = petrolPrice,
+                    pricePerLiter = getFuelPrice(fuelType),
                     fullTank = fullTank,
                     fuelType = fuelType
                 )
@@ -400,5 +418,12 @@ class FuelViewModel(application: Application) : AndroidViewModel(application) {
         backupManager.importBackup(backup, mergeMode) { price ->
             petrolPrice = price
         }
+    }
+    fun areNotificationsEnabled(): Boolean {
+        return prefs.getBoolean("notifications_enabled", true)
+    }
+
+    fun setNotificationsEnabled(enabled: Boolean) {
+        prefs.edit().putBoolean("notifications_enabled", enabled).apply()
     }
 }

@@ -70,4 +70,6 @@ dependencies {
     
     // Coil for image loading
     implementation(libs.coil.compose)
+
+    implementation("androidx.work:work-runtime-ktx:2.9.0")
 }

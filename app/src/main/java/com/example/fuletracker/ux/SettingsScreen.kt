@@ -30,11 +30,16 @@ import androidx.compose.ui.platform.LocalContext
 import com.example.fuletracker.data.AppBackup
 import kotlinx.coroutines.launch
 import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Notifications
+import com.example.fuletracker.data.Vehicle
+import com.example.fuletracker.worker.ReminderScheduler
 
 @Composable
 fun SettingsScreen(viewModel: FuelViewModel, modifier: Modifier = Modifier) {
     val vehicles by viewModel.allVehicles.collectAsState()
     val allEntries by viewModel.allEntries.collectAsState()
+    var editingVehicle by remember { mutableStateOf<Vehicle?>(null) }
     var showAddVehicle by remember { mutableStateOf(false) }
     var priceText by remember {
         mutableStateOf(
@@ -62,6 +67,17 @@ fun SettingsScreen(viewModel: FuelViewModel, modifier: Modifier = Modifier) {
 
         // ── Fuel Price Card ────────────────────────────────────────────────
         item {
+            val fuelTypes = listOf("Petrol", "Diesel", "CNG", "Electric")
+            val priceTexts = remember {
+                mutableStateMapOf<String, String>().apply {
+                    fuelTypes.forEach { type ->
+                        put(type, viewModel.getFuelPrice(type).let {
+                            if (it > 0) "%.2f".format(it) else ""
+                        })
+                    }
+                }
+            }
+
             Card(modifier = Modifier.fillMaxWidth()) {
                 Column(
                     modifier = Modifier.padding(20.dp),
@@ -73,76 +89,122 @@ fun SettingsScreen(viewModel: FuelViewModel, modifier: Modifier = Modifier) {
                     ) {
                         Icon(Icons.Default.History, null,
                             tint = MaterialTheme.colorScheme.primary)
-                        Text("Fuel Price",
+                        Text("Fuel Prices",
                             style = MaterialTheme.typography.titleLarge,
                             fontWeight = FontWeight.Bold)
                     }
 
-                    // Current price input
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        OutlinedTextField(
-                            value = priceText,
-                            onValueChange = { priceText = it },
-                            label = { Text("Current Price (₹/L)") },
-                            prefix = { Text("₹") },
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                            modifier = Modifier.weight(1f),
-                            singleLine = true
-                        )
-                        Button(
-                            onClick = {
-                                priceText.toDoubleOrNull()?.let {
-                                    viewModel.petrolPrice = it
-                                }
-                            },
-                            modifier = Modifier.height(56.dp)
-                        ) {
-                            Text("Save")
-                        }
-                    }
+                    Text(
+                        "Set current prices per litre for each fuel type you use.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.outline
+                    )
 
-                    if (viewModel.petrolPrice > 0) {
-                        Surface(
-                            color = MaterialTheme.colorScheme.primaryContainer,
-                            shape = MaterialTheme.shapes.medium
+                    // One row per fuel type
+                    fuelTypes.forEach { fuelType ->
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
+                            OutlinedTextField(
+                                value = priceTexts[fuelType] ?: "",
+                                onValueChange = { priceTexts[fuelType] = it },
+                                label = { Text(fuelType) },
+                                prefix = { Text("₹") },
+                                suffix = { Text("/L") },
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                                modifier = Modifier.weight(1f),
+                                singleLine = true,
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedLabelColor = when (fuelType) {
+                                        "Diesel" -> MaterialTheme.colorScheme.tertiary
+                                        "CNG" -> MaterialTheme.colorScheme.secondary
+                                        "Electric" -> MaterialTheme.colorScheme.primary
+                                        else -> MaterialTheme.colorScheme.primary
+                                    }
+                                )
+                            )
+                            FilledTonalButton(
+                                onClick = {
+                                    priceTexts[fuelType]?.toDoubleOrNull()?.let {
+                                        viewModel.setFuelPrice(fuelType, it)
+                                    }
+                                },
+                                modifier = Modifier.height(56.dp)
+                            ) {
+                                Text("Save")
+                            }
+                        }
+
+                        // Show current saved price
+                        val savedPrice = viewModel.getFuelPrice(fuelType)
+                        if (savedPrice > 0) {
                             Text(
-                                "Current: ₹${"%.2f".format(viewModel.petrolPrice)}/L",
-                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onPrimaryContainer,
-                                fontWeight = FontWeight.Bold
+                                "Current $fuelType price: ₹${"%.2f".format(savedPrice)}/L",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.outline
                             )
                         }
                     }
 
                     // Price history
-                    if (priceHistory.isNotEmpty()) {
+                    if (allEntries.isNotEmpty()) {
                         HorizontalDivider()
-                        Text("Price History",
+                        Text(
+                            "Price History",
                             style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.outline,
-                            letterSpacing = 1.sp)
-                        priceHistory.forEach { entry ->
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween
+                            letterSpacing = 1.sp
+                        )
+
+                        val byFuelType = allEntries
+                            .sortedByDescending { it.date }
+                            .groupBy { it.fuelType }
+
+                        byFuelType.forEach { (fuelType, fuelEntries) ->
+                            Surface(
+                                color = MaterialTheme.colorScheme.secondaryContainer,
+                                shape = MaterialTheme.shapes.small
                             ) {
                                 Text(
-                                    SimpleDateFormat("MMM yyyy", Locale.getDefault())
-                                        .format(java.util.Date(entry.date)),
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.outline
-                                )
-                                Text(
-                                    "₹${"%.2f".format(entry.pricePerLiter)}/L",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    fontWeight = FontWeight.Bold
+                                    fuelType,
+                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                                    style = MaterialTheme.typography.labelMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSecondaryContainer
                                 )
                             }
+
+                            fuelEntries.distinctBy { it.pricePerLiter }.take(10).forEach { entry ->
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Column {
+                                        Text(
+                                            SimpleDateFormat("dd MMM yyyy", Locale.getDefault())
+                                                .format(java.util.Date(entry.date)),
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.outline
+                                        )
+                                        val vehicle = vehicles.find { it.id == entry.vehicleId }
+                                        if (vehicle != null) {
+                                            Text(
+                                                vehicle.name,
+                                                style = MaterialTheme.typography.labelSmall,
+                                                color = MaterialTheme.colorScheme.outline
+                                            )
+                                        }
+                                    }
+                                    Text(
+                                        "₹${"%.2f".format(entry.pricePerLiter)}/L",
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
+                            }
+                            Spacer(Modifier.height(4.dp))
                         }
                     }
                 }
@@ -237,9 +299,19 @@ fun SettingsScreen(viewModel: FuelViewModel, modifier: Modifier = Modifier) {
                                         }
                                     }
                                 }
-                                IconButton(onClick = { viewModel.deleteVehicle(vehicle) }) {
-                                    Icon(Icons.Default.Delete, null,
-                                        tint = MaterialTheme.colorScheme.outline)
+                                Row {
+                                    IconButton(onClick = { editingVehicle = vehicle }) {
+                                        Icon(
+                                            Icons.Default.Edit, null,
+                                            tint = MaterialTheme.colorScheme.primary
+                                        )
+                                    }
+                                    IconButton(onClick = { viewModel.deleteVehicle(vehicle) }) {
+                                        Icon(
+                                            Icons.Default.Delete, null,
+                                            tint = MaterialTheme.colorScheme.outline
+                                        )
+                                    }
                                 }
                             }
                         }
@@ -392,16 +464,93 @@ fun SettingsScreen(viewModel: FuelViewModel, modifier: Modifier = Modifier) {
                 )
             }
         }
+        item {
+            val context = LocalContext.current
+            var notificationsEnabled by remember {
+                mutableStateOf(
+                    viewModel.areNotificationsEnabled()
+                )
+            }
 
+            Card(modifier = Modifier.fillMaxWidth()) {
+                Column(
+                    modifier = Modifier.padding(20.dp),
+                    verticalArrangement = Arrangement.spacedBy(14.dp)
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Icon(Icons.Default.Notifications, null,
+                            tint = MaterialTheme.colorScheme.primary)
+                        Text("Reminders",
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold)
+                    }
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column {
+                            Text("Enable Reminders",
+                                style = MaterialTheme.typography.bodyLarge)
+                            Text("Weekly fill-up, inactivity & price alerts",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.outline)
+                        }
+                        Switch(
+                            checked = notificationsEnabled,
+                            onCheckedChange = { enabled ->
+                                notificationsEnabled = enabled
+                                viewModel.setNotificationsEnabled(enabled)
+                                if (enabled) {
+                                    ReminderScheduler.scheduleWeeklyReminder(context)
+                                    ReminderScheduler.scheduleInactivityReminder(context)
+                                    ReminderScheduler.schedulePriceReminder(context)
+                                } else {
+                                    ReminderScheduler.cancelAll(context)
+                                }
+                            }
+                        )
+                    }
+
+                    if (notificationsEnabled) {
+                        HorizontalDivider()
+                        Text("Active reminders:",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.outline)
+                        Text("• Weekly fill-up reminder",
+                            style = MaterialTheme.typography.bodySmall)
+                        Text("• 10-day inactivity reminder",
+                            style = MaterialTheme.typography.bodySmall)
+                        Text("• Monthly fuel price check",
+                            style = MaterialTheme.typography.bodySmall)
+                    }
+                }
+            }
+        }
         item { Spacer(Modifier.height(80.dp)) }
     }
 
     if (showAddVehicle) {
         AddVehicleDialog(
             onDismiss = { showAddVehicle = false },
-            onConfirm = { name: String, make: String, model: String, plate: String ->
-                viewModel.addVehicle(name, make, model, plate)
+            onConfirm = { name: String, make: String, model: String, plate: String, fuelType: String ->
+                viewModel.addVehicle(name, make, model, plate, fuelType)
                 showAddVehicle = false
+            }
+        )
+    }
+
+    editingVehicle?.let { vehicle ->
+        EditVehicleDialog(
+            vehicle = vehicle,
+            onDismiss = { editingVehicle = null },
+            onConfirm = { name: String, make: String, model: String, plate: String, fuelType: String ->
+                viewModel.editVehicle(vehicle, name, make, model, plate, fuelType)
+                editingVehicle = null
             }
         )
     }

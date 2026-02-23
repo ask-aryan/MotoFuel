@@ -4,6 +4,10 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Air
+import androidx.compose.material.icons.filled.ElectricBolt
+import androidx.compose.material.icons.filled.LocalGasStation
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -22,16 +26,16 @@ fun AddEntryScreen(
 ) {
     val entries by viewModel.currentEntries.collectAsState()
     val lastOdometer = viewModel.getLastOdometer(entries)
-    val price = viewModel.petrolPrice
+
+    // Get fuel type from selected vehicle
+    val selectedVehicle by viewModel.selectedVehicle.collectAsState()
+    val vehicleFuelType = selectedVehicle?.fuelType ?: "Petrol"
+    val price = viewModel.getFuelPrice(vehicleFuelType)
 
     var odometer by remember { mutableStateOf("") }
     var fuelAmount by remember { mutableStateOf("") }
     var fullTank by remember { mutableStateOf(true) }
-    var fuelType by remember { mutableStateOf("Petrol") }
     var error by remember { mutableStateOf("") }
-    var fuelTypeExpanded by remember { mutableStateOf(false) }
-
-    val fuelTypes = listOf("Petrol", "Diesel", "CNG", "Electric")
 
     // Auto calculations
     val odoValue = odometer.toDoubleOrNull()
@@ -92,29 +96,47 @@ fun AddEntryScreen(
             singleLine = true
         )
 
-        // Fuel Type dropdown
-        ExposedDropdownMenuBox(
-            expanded = fuelTypeExpanded,
-            onExpandedChange = { fuelTypeExpanded = it }
+// Fuel Type — read only from vehicle
+        Surface(
+            color = MaterialTheme.colorScheme.secondaryContainer,
+            shape = MaterialTheme.shapes.medium
         ) {
-            OutlinedTextField(
-                value = fuelType,
-                onValueChange = {},
-                readOnly = true,
-                label = { Text("Fuel Type") },
-                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = fuelTypeExpanded) },
-                modifier = Modifier.fillMaxWidth().menuAnchor()
-            )
-            ExposedDropdownMenu(
-                expanded = fuelTypeExpanded,
-                onDismissRequest = { fuelTypeExpanded = false }
+            Row(
+                modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                fuelTypes.forEach { type ->
-                    DropdownMenuItem(
-                        text = { Text(type) },
-                        onClick = { fuelType = type; fuelTypeExpanded = false }
-                    )
-                }
+                Icon(
+                    imageVector = when (vehicleFuelType) {
+                        "Diesel" -> Icons.Default.LocalGasStation
+                        "CNG" -> Icons.Default.Air
+                        "Electric" -> Icons.Default.ElectricBolt
+                        else -> Icons.Default.LocalGasStation
+                    },
+                    contentDescription = null,
+                    modifier = Modifier.size(16.dp),
+                    tint = MaterialTheme.colorScheme.onSecondaryContainer
+                )
+                Text(
+                    "Fuel Type: $vehicleFuelType",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSecondaryContainer,
+                    fontWeight = FontWeight.Medium
+                )
+            }
+        }
+        // Add after the fuel type chip
+        if (price <= 0) {
+            Surface(
+                color = MaterialTheme.colorScheme.errorContainer,
+                shape = MaterialTheme.shapes.small
+            ) {
+                Text(
+                    "⚠ No price set for $vehicleFuelType — go to Settings to add it",
+                    modifier = Modifier.padding(10.dp),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onErrorContainer
+                )
             }
         }
 
@@ -185,7 +207,7 @@ fun AddEntryScreen(
                         error = "Odometer must be greater than last reading (${lastOdometer.toInt()} km)"
                     fuel == null || fuel <= 0 -> error = "Enter a valid fuel amount"
                     else -> {
-                        viewModel.addEntry(odo, fuel, fullTank, fuelType)
+                        viewModel.addEntry(odo, fuel, fullTank, vehicleFuelType)
                         onEntryAdded()
                     }
                 }

@@ -7,7 +7,7 @@ import androidx.room.RoomDatabase
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
-@Database(entities = [FuelEntry::class, Vehicle::class, Trip::class], version = 4)
+@Database(entities = [FuelEntry::class, Vehicle::class, Trip::class], version = 5)
 abstract class FuelDatabase : RoomDatabase() {
     abstract fun fuelDao(): FuelDao
     abstract fun tripDao(): TripDao
@@ -76,6 +76,13 @@ abstract class FuelDatabase : RoomDatabase() {
                 )
             }
         }
+        val MIGRATION_4_5 = object : Migration(4, 5) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL(
+                    "ALTER TABLE vehicles ADD COLUMN fuelType TEXT NOT NULL DEFAULT 'Petrol'"
+                )
+            }
+        }
         fun getDatabase(context: Context): FuelDatabase {
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(
@@ -83,7 +90,7 @@ abstract class FuelDatabase : RoomDatabase() {
                     FuelDatabase::class.java,
                     "fuel_database"
                 )
-                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
+                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4,MIGRATION_4_5)
                     .build()
                 INSTANCE = instance
                 instance

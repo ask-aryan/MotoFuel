@@ -15,13 +15,44 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import com.example.fuletracker.ui.theme.FuleTrackerTheme
 import com.example.fuletracker.ux.*
-
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Build
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
+import com.example.fuletracker.worker.ReminderScheduler
 class MainActivity : ComponentActivity() {
 
     private val viewModel: FuelViewModel by viewModels()
+    private val notificationPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        if (granted) scheduleReminders()
+    }
 
+    private fun requestNotificationPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            when {
+                ContextCompat.checkSelfPermission(
+                    this, Manifest.permission.POST_NOTIFICATIONS
+                ) == PackageManager.PERMISSION_GRANTED -> scheduleReminders()
+                else -> notificationPermissionLauncher.launch(
+                    Manifest.permission.POST_NOTIFICATIONS
+                )
+            }
+        } else {
+            scheduleReminders()
+        }
+    }
+
+    private fun scheduleReminders() {
+        ReminderScheduler.scheduleWeeklyReminder(this)
+        ReminderScheduler.scheduleInactivityReminder(this)
+        ReminderScheduler.schedulePriceReminder(this)
+    }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        requestNotificationPermission()
         setContent {
             FuleTrackerTheme {
                 MainScreen(viewModel)

@@ -275,11 +275,13 @@ fun DashboardScreen(viewModel: FuelViewModel, modifier: Modifier = Modifier) {
     }
 
     if (showPriceDialog) {
+        val vehicleFuelType = selectedVehicle?.fuelType ?: "Petrol"
         QuickPriceDialog(
-            currentPrice = price,
+            fuelType = vehicleFuelType,
+            currentPrice = viewModel.getFuelPrice(vehicleFuelType),
             onDismiss = { showPriceDialog = false },
-            onSave = { 
-                viewModel.petrolPrice = it
+            onSave = {
+                viewModel.setFuelPrice(vehicleFuelType, it)
                 showPriceDialog = false
             }
         )
@@ -287,8 +289,8 @@ fun DashboardScreen(viewModel: FuelViewModel, modifier: Modifier = Modifier) {
     if (showVehicleDialog) {
         AddVehicleDialog(
             onDismiss = { showVehicleDialog = false },
-            onConfirm = { name: String, make: String, model: String, plate: String ->
-                viewModel.addVehicle(name, make, model, plate)
+            onConfirm = { name: String, make: String, model: String, plate: String, fuelType: String ->
+                viewModel.addVehicle(name, make, model, plate, fuelType)
                 showVehicleDialog = false
             }
         )

@@ -50,8 +50,8 @@ fun VehicleManagementScreen(viewModel: FuelViewModel, modifier: Modifier = Modif
     if (showAddDialog) {
         AddVehicleDialog(
             onDismiss = { showAddDialog = false },
-            onConfirm = { name, make, model, plate ->
-                viewModel.addVehicle(name, make, model, plate)
+            onConfirm = { name, make, model, plate, fuelType ->
+                viewModel.addVehicle(name, make, model, plate, fuelType)
                 showAddDialog = false
             }
         )
@@ -107,27 +107,82 @@ fun VehicleItem(vehicle: Vehicle, isSelected: Boolean, onSelect: () -> Unit) {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddVehicleDialog(onDismiss: () -> Unit, onConfirm: (String, String, String, String) -> Unit) {
+fun AddVehicleDialog(onDismiss: () -> Unit, onConfirm: (String, String, String, String, String) -> Unit) {
     var name by remember { mutableStateOf("") }
     var make by remember { mutableStateOf("") }
     var model by remember { mutableStateOf("") }
     var plate by remember { mutableStateOf("") }
+    var fuelType by remember { mutableStateOf("Petrol") }
+    var fuelTypeExpanded by remember { mutableStateOf(false) }
+    val fuelTypes = listOf("Petrol", "Diesel", "CNG", "Electric")
 
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("Add New Vehicle") },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text("Vehicle Name (e.g. My Car)") })
-                OutlinedTextField(value = make, onValueChange = { make = it }, label = { Text("Make (e.g. Toyota)") })
-                OutlinedTextField(value = model, onValueChange = { model = it }, label = { Text("Model (e.g. Corolla)") })
-                OutlinedTextField(value = plate, onValueChange = { plate = it }, label = { Text("License Plate") })
+                OutlinedTextField(
+                    value = name,
+                    onValueChange = { name = it },
+                    label = { Text("Vehicle Name (e.g. My Bike)") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                OutlinedTextField(
+                    value = make,
+                    onValueChange = { make = it },
+                    label = { Text("Make (e.g. Hero)") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                OutlinedTextField(
+                    value = model,
+                    onValueChange = { model = it },
+                    label = { Text("Model (e.g. Splendor)") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                OutlinedTextField(
+                    value = plate,
+                    onValueChange = { plate = it },
+                    label = { Text("License Plate") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                // Fuel Type selector
+                ExposedDropdownMenuBox(
+                    expanded = fuelTypeExpanded,
+                    onExpandedChange = { fuelTypeExpanded = it }
+                ) {
+                    OutlinedTextField(
+                        value = fuelType,
+                        onValueChange = {},
+                        readOnly = true,
+                        label = { Text("Fuel Type") },
+                        trailingIcon = {
+                            ExposedDropdownMenuDefaults.TrailingIcon(expanded = fuelTypeExpanded)
+                        },
+                        modifier = Modifier.fillMaxWidth().menuAnchor()
+                    )
+                    ExposedDropdownMenu(
+                        expanded = fuelTypeExpanded,
+                        onDismissRequest = { fuelTypeExpanded = false }
+                    ) {
+                        fuelTypes.forEach { type ->
+                            DropdownMenuItem(
+                                text = { Text(type) },
+                                onClick = {
+                                    fuelType = type
+                                    fuelTypeExpanded = false
+                                }
+                            )
+                        }
+                    }
+                }
             }
         },
         confirmButton = {
             Button(
-                onClick = { if (name.isNotBlank()) onConfirm(name, make, model, plate) },
+                onClick = { if (name.isNotBlank()) onConfirm(name, make, model, plate, fuelType) },
                 enabled = name.isNotBlank()
             ) { Text("Add") }
         },

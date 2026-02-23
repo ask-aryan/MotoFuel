@@ -14,6 +14,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.fuletracker.data.FuelEntry
+import com.example.fuletracker.data.Vehicle
 import com.example.fuletracker.ux.FuelViewModel.FuelInsight
 import com.example.fuletracker.ux.FuelViewModel.InsightType
 import java.text.SimpleDateFormat
@@ -122,20 +123,26 @@ fun ChartPlaceholder(message: String) {
 
 
 @Composable
-fun QuickPriceDialog(currentPrice: Double, onDismiss: () -> Unit, onSave: (Double) -> Unit) {
-    var priceText by remember { mutableStateOf(if (currentPrice > 0) currentPrice.toString() else "") }
+fun QuickPriceDialog(
+    fuelType: String = "Petrol",
+    currentPrice: Double,
+    onDismiss: () -> Unit,
+    onSave: (Double) -> Unit
+) {
+    var priceText by remember { mutableStateOf(if (currentPrice > 0) "%.2f".format(currentPrice) else "") }
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Set Fuel Price") },
+        title = { Text("Set $fuelType Price") },
         text = {
-            Column {
-                Text("Enter the current price per litre to enable cost tracking.", 
-                    style = MaterialTheme.typography.bodySmall, 
-                    modifier = Modifier.padding(bottom = 8.dp))
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(
+                    "Enter the current $fuelType price per litre.",
+                    style = MaterialTheme.typography.bodySmall
+                )
                 OutlinedTextField(
                     value = priceText,
                     onValueChange = { priceText = it },
-                    label = { Text("Price (₹/L)") },
+                    label = { Text("$fuelType Price (₹/L)") },
                     prefix = { Text("₹") },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                     modifier = Modifier.fillMaxWidth(),
@@ -144,7 +151,9 @@ fun QuickPriceDialog(currentPrice: Double, onDismiss: () -> Unit, onSave: (Doubl
             }
         },
         confirmButton = {
-            Button(onClick = { priceText.toDoubleOrNull()?.let { onSave(it) } }) { Text("Save") }
+            Button(onClick = { priceText.toDoubleOrNull()?.let { onSave(it) } }) {
+                Text("Save")
+            }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) { Text("Cancel") }
@@ -198,4 +207,88 @@ fun InsightsSection(insights: List<FuelInsight>) {
             }
         }
     }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun EditVehicleDialog(
+    vehicle: Vehicle,
+    onDismiss: () -> Unit,
+    onConfirm: (String, String, String, String, String) -> Unit
+) {
+    var name by remember { mutableStateOf(vehicle.name) }
+    var make by remember { mutableStateOf(vehicle.make) }
+    var model by remember { mutableStateOf(vehicle.model) }
+    var plate by remember { mutableStateOf(vehicle.licensePlate) }
+    var fuelType by remember { mutableStateOf(vehicle.fuelType) }
+    var fuelTypeExpanded by remember { mutableStateOf(false) }
+    val fuelTypes = listOf("Petrol", "Diesel", "CNG", "Electric")
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Edit Vehicle") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedTextField(
+                    value = name,
+                    onValueChange = { name = it },
+                    label = { Text("Vehicle Name") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                OutlinedTextField(
+                    value = make,
+                    onValueChange = { make = it },
+                    label = { Text("Make") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                OutlinedTextField(
+                    value = model,
+                    onValueChange = { model = it },
+                    label = { Text("Model") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                OutlinedTextField(
+                    value = plate,
+                    onValueChange = { plate = it },
+                    label = { Text("License Plate") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                ExposedDropdownMenuBox(
+                    expanded = fuelTypeExpanded,
+                    onExpandedChange = { fuelTypeExpanded = it }
+                ) {
+                    OutlinedTextField(
+                        value = fuelType,
+                        onValueChange = {},
+                        readOnly = true,
+                        label = { Text("Fuel Type") },
+                        trailingIcon = {
+                            ExposedDropdownMenuDefaults.TrailingIcon(expanded = fuelTypeExpanded)
+                        },
+                        modifier = Modifier.fillMaxWidth().menuAnchor()
+                    )
+                    ExposedDropdownMenu(
+                        expanded = fuelTypeExpanded,
+                        onDismissRequest = { fuelTypeExpanded = false }
+                    ) {
+                        fuelTypes.forEach { type ->
+                            DropdownMenuItem(
+                                text = { Text(type) },
+                                onClick = { fuelType = type; fuelTypeExpanded = false }
+                            )
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = { if (name.isNotBlank()) onConfirm(name, make, model, plate, fuelType) },
+                enabled = name.isNotBlank()
+            ) { Text("Save") }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text("Cancel") }
+        }
+    )
 }
