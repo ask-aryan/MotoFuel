@@ -1,0 +1,418 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/widget_background"
+    android:padding="12dp">
+
+    <ViewFlipper
+        android:id="@+id/widget_flipper"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <!-- Page 1: Dashboard -->
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <!-- Header -->
+            <LinearLayout
+                android:id="@+id/header"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:src="@android:drawable/ic_menu_myplaces"
+                    android:tint="#4F378B" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="8dp"
+                    android:text="FUEL TRACKER"
+                    android:textColor="#4F378B"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:letterSpacing="0.05" />
+
+                <TextView
+                    android:id="@+id/widget_vehicle_name"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/widget_button_background"
+                    android:paddingHorizontal="14dp"
+                    android:paddingVertical="4dp"
+                    android:text="Bike"
+                    android:textColor="#4F378B"
+                    android:textSize="11sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <!-- Large Stats Row -->
+            <LinearLayout
+                android:id="@+id/stat_cards_row"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/header"
+                android:layout_marginTop="12dp"
+                android:orientation="horizontal"
+                android:weightSum="2">
+
+                <!-- Efficiency -->
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="6dp"
+                    android:background="@drawable/widget_button_background"
+                    android:padding="12dp"
+                    android:orientation="vertical">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="AVG EFFICIENCY"
+                        android:textColor="#4F378B"
+                        android:textSize="9sp"
+                        android:textStyle="bold" />
+                    <TextView
+                        android:id="@+id/widget_efficiency"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="—"
+                        android:textColor="#21005D"
+                        android:textSize="28sp"
+                        android:textStyle="bold" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="km/L"
+                        android:textColor="#4F378B"
+                        android:textSize="10sp" />
+                </LinearLayout>
+
+                <!-- Range -->
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="6dp"
+                    android:background="@drawable/widget_button_background"
+                    android:padding="12dp"
+                    android:orientation="vertical">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="EST. RANGE"
+                        android:textColor="#4F378B"
+                        android:textSize="9sp"
+                        android:textStyle="bold" />
+                    <TextView
+                        android:id="@+id/widget_range"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="—"
+                        android:textColor="#21005D"
+                        android:textSize="28sp"
+                        android:textStyle="bold" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="km left"
+                        android:textColor="#4F378B"
+                        android:textSize="10sp" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- Small Stats Row -->
+            <LinearLayout
+                android:id="@+id/info_row"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/stat_cards_row"
+                android:layout_marginTop="10dp"
+                android:orientation="horizontal"
+                android:weightSum="3">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="4dp"
+                    android:background="@drawable/widget_button_background"
+                    android:padding="8dp"
+                    android:gravity="center"
+                    android:orientation="vertical">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="ODOMETER"
+                        android:textColor="#4F378B"
+                        android:textSize="8sp"
+                        android:textStyle="bold" />
+                    <TextView
+                        android:id="@+id/widget_odometer"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="—"
+                        android:textColor="#21005D"
+                        android:textSize="12sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginHorizontal="4dp"
+                    android:background="@drawable/widget_button_background"
+                    android:padding="8dp"
+                    android:gravity="center"
+                    android:orientation="vertical">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="₹ / KM"
+                        android:textColor="#4F378B"
+                        android:textSize="8sp"
+                        android:textStyle="bold" />
+                    <TextView
+                        android:id="@+id/widget_cost_per_km"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="—"
+                        android:textColor="#21005D"
+                        android:textSize="12sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="4dp"
+                    android:background="@drawable/widget_button_background"
+                    android:padding="8dp"
+                    android:gravity="center"
+                    android:orientation="vertical">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="LAST FILL"
+                        android:textColor="#4F378B"
+                        android:textSize="8sp"
+                        android:textStyle="bold" />
+                    <TextView
+                        android:id="@+id/widget_last_fill"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="—"
+                        android:textColor="#21005D"
+                        android:textSize="12sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- Quick Add Row -->
+            <LinearLayout
+                android:id="@+id/quick_add_row"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/info_row"
+                android:layout_marginTop="10dp"
+                android:orientation="horizontal"
+                android:weightSum="3">
+
+                <LinearLayout
+                    android:id="@+id/widget_add_2l"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="4dp"
+                    android:background="@drawable/widget_button_background"
+                    android:padding="10dp"
+                    android:gravity="center"
+                    android:orientation="vertical">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="+2L"
+                        android:textColor="#21005D"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Quick add"
+                        android:textColor="#4F378B"
+                        android:textSize="9sp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/widget_add_5l"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginHorizontal="4dp"
+                    android:background="@drawable/widget_button_background"
+                    android:padding="10dp"
+                    android:gravity="center"
+                    android:orientation="vertical">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="+5L"
+                        android:textColor="#21005D"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Quick add"
+                        android:textColor="#4F378B"
+                        android:textSize="9sp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/widget_add_full"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="4dp"
+                    android:background="@drawable/widget_button_background"
+                    android:padding="10dp"
+                    android:gravity="center"
+                    android:orientation="vertical">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Full"
+                        android:textColor="#21005D"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Custom"
+                        android:textColor="#4F378B"
+                        android:textSize="9sp" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- Main Button -->
+            <LinearLayout
+                android:id="@+id/widget_add_button"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_below="@id/quick_add_row"
+                android:layout_marginTop="12dp"
+                android:background="@drawable/widget_background"
+                android:backgroundTint="#4F378B"
+                android:gravity="center"
+                android:orientation="horizontal">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="+ Log Fill-up"
+                    android:textColor="@android:color/white"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+        </RelativeLayout>
+
+        <!-- Page 2: Monthly Breakdown -->
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+            <TextView
+                android:id="@+id/widget_monthly_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerHorizontal="true"
+                android:text="MONTHLY OVERVIEW"
+                android:textColor="#4F378B"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:layout_marginTop="10dp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/widget_monthly_title"
+                android:layout_marginTop="24dp"
+                android:orientation="vertical"
+                android:padding="16dp"
+                android:background="@drawable/widget_button_background">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:paddingVertical="8dp">
+                    <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Spent:" android:textColor="#4F378B" />
+                    <TextView android:id="@+id/widget_month_spent" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="₹0" android:textColor="#21005D" android:textStyle="bold" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:paddingVertical="8dp">
+                    <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Distance:" android:textColor="#4F378B" />
+                    <TextView android:id="@+id/widget_month_dist" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="0 km" android:textColor="#21005D" android:textStyle="bold" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:paddingVertical="8dp">
+                    <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Fuel:" android:textColor="#4F378B" />
+                    <TextView android:id="@+id/widget_month_fuel" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="0 L" android:textColor="#21005D" android:textStyle="bold" />
+                </LinearLayout>
+            </LinearLayout>
+        </RelativeLayout>
+    </ViewFlipper>
+
+    <!-- Page Indicator Dots -->
+    <LinearLayout
+        android:id="@+id/dots"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:orientation="horizontal"
+        android:paddingBottom="4dp">
+        <ImageView
+            android:id="@+id/dot1"
+            android:layout_width="8dp"
+            android:layout_height="8dp"
+            android:layout_margin="3dp"
+            android:src="@drawable/widget_dot_active" />
+        <ImageView
+            android:id="@+id/dot2"
+            android:layout_width="8dp"
+            android:layout_height="8dp"
+            android:layout_margin="3dp"
+            android:src="@drawable/widget_dot" />
+    </LinearLayout>
+
+    <!-- Swipe Touch Targets -->
+    <Button
+        android:id="@+id/widget_prev"
+        android:layout_width="40dp"
+        android:layout_height="match_parent"
+        android:layout_alignParentStart="true"
+        android:background="@android:color/transparent" />
+    <Button
+        android:id="@+id/widget_next"
+        android:layout_width="40dp"
+        android:layout_height="match_parent"
+        android:layout_alignParentEnd="true"
+        android:background="@android:color/transparent" />
+
+</RelativeLayout>
