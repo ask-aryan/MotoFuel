@@ -18,3 +18,9 @@
 .externalNativeBuild
 .cxx
 local.properties
+
+# Personal / non-project files
+/resume.docx
+/add_resume_project.ps1
+/Kotlin app visual redesign concept/
+/design_handoff_visual_redesign/

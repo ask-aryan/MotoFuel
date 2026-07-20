@@ -14,11 +14,11 @@ plugins {
 }
 
 android {
-    namespace = "com.example.fuletracker"
+    namespace = "com.example.fueltracker"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.example.fuletracker"
+        applicationId = "com.example.fueltracker"
         minSdk = 24
         targetSdk = 35
         versionCode = 1
@@ -81,6 +81,7 @@ dependencies {
     // Coil for image loading
     implementation(libs.coil.compose)
 
+    implementation("androidx.compose.ui:ui-text-google-fonts:1.7.8")
     implementation("androidx.work:work-runtime-ktx:2.9.0")
     implementation("com.google.android.gms:play-services-location:21.3.0")
     implementation("org.osmdroid:osmdroid-android:6.1.20")

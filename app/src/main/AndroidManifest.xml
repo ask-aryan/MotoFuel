@@ -10,13 +10,13 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.FuleTracker">
+        android:theme="@style/Theme.FuelTracker">
         <activity
             android:name=".MainActivity"
             android:configChanges="orientation|screenSize"
             android:exported="true"
             android:label="@string/app_name"
-            android:theme="@style/Theme.FuleTracker">
+            android:theme="@style/Theme.FuelTracker">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -27,7 +27,7 @@
             android:name=".RidingModeActivity"
             android:configChanges="orientation|screenSize"
             android:keepScreenOn="true"
-            android:theme="@style/Theme.FuleTracker.RidingMode" />
+            android:theme="@style/Theme.FuelTracker.RidingMode" />
 
         <receiver
             android:name=".widget.FuelWidgetProvider"
@@ -41,12 +41,21 @@
         </receiver>
 
         <receiver
+            android:name=".widget.MonthlyWidgetProvider"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/monthly_widget_info" />
+        </receiver>
+
+        <receiver
             android:name=".widget.WidgetActionReceiver"
             android:exported="false">
             <intent-filter>
                 <action android:name="ACTION_ADD_FUEL" />
-                <action android:name="ACTION_NEXT_PAGE" />
-                <action android:name="ACTION_PREV_PAGE" />
             </intent-filter>
         </receiver>
 

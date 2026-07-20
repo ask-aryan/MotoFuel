@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Fule Tracker</string>
+    <string name="app_name">Fuel Tracker</string>
 
     <!-- Fuel Types -->
     <string name="fuel_type_petrol">Petrol</string>
@@ -79,7 +79,7 @@
     <string name="save_to_diary">Save to Diary</string>
 
     <!-- Navigation -->
-    <string name="nav_dashboard">Dashboard</string>
+    <string name="nav_dashboard">Home</string>
     <string name="nav_stats">Stats</string>
     <string name="nav_diary">Diary</string>
     <string name="nav_settings">Settings</string>
@@ -137,6 +137,9 @@
 
     <!-- Add Entry -->
     <string name="add_fillup_title">Add Fill-up</string>
+    <string name="edit_fillup_title">Edit Fill-up</string>
+    <string name="update_entry_button">Update Entry</string>
+    <string name="edit_button">Edit</string>
     <string name="last_recorded_odometer">Last recorded: %s km</string>
     <string name="fuel_type_label">Fuel Type</string>
     <string name="price_not_set">Price not set</string>
