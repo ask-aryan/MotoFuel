@@ -202,24 +202,8 @@ class FuelViewModel(application: Application) : AndroidViewModel(application) {
     fun computeSegmentEfficiencies(entries: List<FuelEntry>): List<Pair<FuelEntry, Double>> =
         com.example.fueltracker.data.computeSegmentEfficiencies(entries)
 
-    fun computeStats(entries: List<FuelEntry>): FuelStats? {
-        if (entries.isEmpty()) return null
-        val sorted = entries.sortedBy { it.odometer }
-        val segments = computeSegmentEfficiencies(entries).map { it.second }
-        val totalDistance = if (sorted.size > 1) sorted.last().odometer - sorted.first().odometer else 0.0
-        val totalCost = entries.sumOf { it.fuelAmount * it.pricePerLiter }
-        return FuelStats(
-            avgEfficiency = if (segments.isEmpty()) 0.0 else segments.average(),
-            bestEfficiency = segments.maxOrNull() ?: 0.0,
-            worstEfficiency = segments.minOrNull() ?: 0.0,
-            totalDistance = totalDistance,
-            totalFuel = entries.sumOf { it.fuelAmount },
-            totalCost = totalCost,
-            lastOdometer = if (sorted.isNotEmpty()) sorted.last().odometer else 0.0,
-            costPerKm = if (totalDistance > 0) totalCost / totalDistance else 0.0,
-            entryCount = entries.size
-        )
-    }
+    fun computeStats(entries: List<FuelEntry>): FuelStats? =
+        com.example.fueltracker.data.computeFuelStats(entries)
 
     fun getOnboardingStep(): Int = prefs.getInt("onboarding_step", 0)
     fun setOnboardingStep(step: Int) { prefs.edit().putInt("onboarding_step", step).apply() }
@@ -291,4 +275,32 @@ class FuelViewModel(application: Application) : AndroidViewModel(application) {
 
     fun areNotificationsEnabled(): Boolean = prefs.getBoolean("notifications_enabled", true)
     fun setNotificationsEnabled(enabled: Boolean) { prefs.edit().putBoolean("notifications_enabled", enabled).apply() }
+
+    // ── Auto backup ────────────────────────────────────────────────────────
+    fun isAutoBackupEnabled(): Boolean = prefs.getBoolean("auto_backup_enabled", false)
+    fun getBackupFolderUri(): String? = prefs.getString("backup_folder_uri", null)
+
+    /** Persists access to the chosen folder and stores it; re-schedules the worker if auto backup is already on. */
+    fun setBackupFolder(uri: android.net.Uri) {
+        val context = getApplication<Application>()
+        context.contentResolver.takePersistableUriPermission(
+            uri,
+            android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION or android.content.Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+        )
+        prefs.edit().putString("backup_folder_uri", uri.toString()).apply()
+        if (isAutoBackupEnabled()) {
+            com.example.fueltracker.worker.BackupScheduler.scheduleDailyBackup(context, uri.toString())
+        }
+    }
+
+    fun setAutoBackupEnabled(enabled: Boolean) {
+        val context = getApplication<Application>()
+        prefs.edit().putBoolean("auto_backup_enabled", enabled).apply()
+        val folderUri = getBackupFolderUri()
+        if (enabled && folderUri != null) {
+            com.example.fueltracker.worker.BackupScheduler.scheduleDailyBackup(context, folderUri)
+        } else {
+            com.example.fueltracker.worker.BackupScheduler.cancelBackup(context)
+        }
+    }
 }

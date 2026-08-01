@@ -11,7 +11,7 @@ import android.widget.RemoteViews
 import com.example.fueltracker.MainActivity
 import com.example.fueltracker.R
 import com.example.fueltracker.data.FuelDatabase
-import com.example.fueltracker.data.computeSegmentEfficiencies
+import com.example.fueltracker.data.computeFuelStats
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
@@ -59,17 +59,12 @@ class FuelWidgetProvider : AppWidgetProvider() {
 
                     if (vehicle != null) {
                         val entries = dao.getEntriesForVehicleOnce(vehicle.id)
-                        val sorted = entries.sortedBy { it.odometer }
-
-                        val segments = computeSegmentEfficiencies(entries).map { it.second }
-                        val avgEff = if (segments.isEmpty()) 0.0 else segments.average()
+                        val stats = computeFuelStats(entries)
+                        val avgEff = stats?.avgEfficiency ?: 0.0
                         val range = avgEff * vehicle.tankCapacity
-                        val lastOdo = sorted.lastOrNull()?.odometer ?: 0.0
-                        val totalDistance = if (sorted.size > 1)
-                            sorted.last().odometer - sorted.first().odometer else 0.0
-                        val totalCost = entries.sumOf { it.fuelAmount * it.pricePerLiter }
-                        val costPerKm = if (totalDistance > 0) totalCost / totalDistance else 0.0
-                        val lastFillDate = sorted.lastOrNull()?.date
+                        val lastOdo = stats?.lastOdometer ?: 0.0
+                        val costPerKm = stats?.costPerKm ?: 0.0
+                        val lastFillDate = entries.maxByOrNull { it.odometer }?.date
 
                         views.setTextViewText(R.id.widget_vehicle_name, vehicle.name)
                         views.setTextViewText(R.id.widget_efficiency,

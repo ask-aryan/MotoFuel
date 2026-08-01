@@ -24,6 +24,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.fueltracker.R
@@ -176,7 +177,7 @@ fun DashboardScreen(viewModel: FuelViewModel, modifier: Modifier = Modifier) {
                     topInsight?.let { insight ->
                         MiniChip(
                             icon = { Icon(Icons.Default.TrendingUp, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(14.dp)) },
-                            title = insight.message.take(28),
+                            title = insight.message,
                             subtitle = "",
                             accentBg = false
                         )
@@ -306,7 +307,7 @@ fun DashboardScreen(viewModel: FuelViewModel, modifier: Modifier = Modifier) {
                             topInsight?.let { insight ->
                                 MiniChip(
                                     icon = { Icon(Icons.Default.TrendingUp, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(14.dp)) },
-                                    title = insight.message.take(28), subtitle = "",
+                                    title = insight.message, subtitle = "",
                                     accentBg = false, modifier = Modifier.weight(1f)
                                 )
                             } ?: if (lastService != null) Spacer(Modifier.weight(1f)) else Unit
@@ -616,7 +617,8 @@ private fun MiniChip(
                 style = MaterialTheme.typography.labelMedium,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface,
-                maxLines = 1
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
             )
             if (subtitle.isNotEmpty()) {
                 Text(

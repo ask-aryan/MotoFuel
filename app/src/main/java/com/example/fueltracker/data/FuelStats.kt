@@ -1,4 +1,4 @@
-package com.example.fueltracker.ux
+package com.example.fueltracker.data
 
 data class FuelStats(
     val avgEfficiency: Double,

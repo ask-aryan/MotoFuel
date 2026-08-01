@@ -1,12 +1,3 @@
-import java.util.Properties
-
-val localProperties = Properties()
-val localPropertiesFile = rootProject.file("local.properties")
-if (localPropertiesFile.exists()) {
-    localProperties.load(localPropertiesFile.inputStream())
-}
-val geminiKey = localProperties.getProperty("GEMINI_API_KEY") ?: ""
-
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
@@ -18,13 +9,12 @@ android {
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.example.fueltracker"
+        applicationId = "com.aryanaudichya.fueltracker"
         minSdk = 24
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        buildConfigField("String", "GEMINI_API_KEY", "\"$geminiKey\"")
     }
 
     buildTypes {
@@ -77,12 +67,10 @@ dependencies {
     implementation("androidx.compose.material:material-icons-extended:1.7.0")
     implementation("com.github.PhilJay:MPAndroidChart:v3.1.0")
     implementation("com.google.code.gson:gson:2.10.1")
-    implementation("com.google.ai.client.generativeai:generativeai:0.9.0")
+    implementation("androidx.documentfile:documentfile:1.0.1")
     // Coil for image loading
     implementation(libs.coil.compose)
 
     implementation("androidx.compose.ui:ui-text-google-fonts:1.7.8")
     implementation("androidx.work:work-runtime-ktx:2.9.0")
-    implementation("com.google.android.gms:play-services-location:21.3.0")
-    implementation("org.osmdroid:osmdroid-android:6.1.20")
 }

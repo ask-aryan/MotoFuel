@@ -4,9 +4,12 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import androidx.core.content.FileProvider
+import androidx.documentfile.provider.DocumentFile
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.withContext
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
@@ -15,8 +18,7 @@ class BackupManager(private val context: Context, private val database: FuelData
 
     private val gson: Gson = GsonBuilder().setPrettyPrinting().create()
 
-    // ── Export ─────────────────────────────────────────────────────────────
-    suspend fun exportBackup(petrolPrice: Double): Uri {
+    private suspend fun buildBackup(petrolPrice: Double): AppBackup {
         val dao = database.fuelDao()
         val serviceDao = database.serviceDao()
 
@@ -24,7 +26,7 @@ class BackupManager(private val context: Context, private val database: FuelData
         val entries = dao.getAllEntries().first()
         val serviceEntries = serviceDao.getAllServiceEntriesOnce()
 
-        val backup = AppBackup(
+        return AppBackup(
             petrolPrice = petrolPrice,
             vehicles = vehicles.map {
                 VehicleBackup(it.id, it.name, it.make, it.model, it.licensePlate, it.imageUrl)
@@ -37,13 +39,17 @@ class BackupManager(private val context: Context, private val database: FuelData
                 ServiceEntryBackup(it.id, it.vehicleId, it.date, it.title, it.category, it.odometer, it.cost, it.notes)
             }
         )
+    }
 
-        val json = gson.toJson(backup)
-        val dateStr = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault())
-            .format(Date())
-        val fileName = "motofuel_backup_$dateStr.json"
+    private fun backupFileName(): String {
+        val dateStr = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
+        return "motofuel_backup_$dateStr.json"
+    }
 
-        val file = File(context.cacheDir, fileName)
+    // ── Export ─────────────────────────────────────────────────────────────
+    suspend fun exportBackup(petrolPrice: Double): Uri {
+        val json = gson.toJson(buildBackup(petrolPrice))
+        val file = File(context.cacheDir, backupFileName())
         file.writeText(json)
 
         return FileProvider.getUriForFile(
@@ -51,6 +57,25 @@ class BackupManager(private val context: Context, private val database: FuelData
             "${context.packageName}.provider",
             file
         )
+    }
+
+    /**
+     * Writes a backup as a new file inside the user-chosen folder (SAF tree Uri).
+     * Returns false if the folder is no longer accessible or the write fails.
+     */
+    suspend fun exportBackupToFolder(treeUri: Uri, petrolPrice: Double): Boolean = withContext(Dispatchers.IO) {
+        try {
+            val folder = DocumentFile.fromTreeUri(context, treeUri) ?: return@withContext false
+            if (!folder.exists() || !folder.canWrite()) return@withContext false
+            val json = gson.toJson(buildBackup(petrolPrice))
+            val newFile = folder.createFile("application/json", backupFileName()) ?: return@withContext false
+            context.contentResolver.openOutputStream(newFile.uri)?.use { out ->
+                out.write(json.toByteArray())
+            } ?: return@withContext false
+            true
+        } catch (e: Exception) {
+            false
+        }
     }
 
     fun shareBackup(uri: Uri): Intent {

@@ -571,6 +571,69 @@ fun SettingsScreen(viewModel: FuelViewModel, modifier: Modifier = Modifier) {
             }
         }
 
+        // ── Auto Backup ────────────────────────────────────────────────────
+        item {
+            val context = LocalContext.current
+            var folderUriString by remember { mutableStateOf(viewModel.getBackupFolderUri()) }
+            var autoBackupEnabled by remember { mutableStateOf(viewModel.isAutoBackupEnabled()) }
+            val folderName = folderUriString?.let { uriStr ->
+                androidx.documentfile.provider.DocumentFile.fromTreeUri(context, android.net.Uri.parse(uriStr))?.name
+            }
+
+            val folderPicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri ->
+                if (uri != null) {
+                    viewModel.setBackupFolder(uri)
+                    folderUriString = uri.toString()
+                }
+            }
+
+            SettingsSectionCard {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Icon(Icons.Default.CloudSync, null, tint = primary, modifier = Modifier.size(18.dp))
+                    Text(stringResource(R.string.auto_backup_title), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                }
+                Text(stringResource(R.string.auto_backup_desc), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 2.dp, bottom = 12.dp))
+
+                Text(
+                    text = folderName?.let { stringResource(R.string.backup_folder_selected_label, it) }
+                        ?: stringResource(R.string.backup_folder_none_label),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+
+                OutlinedButton(
+                    onClick = { folderPicker.launch(null) },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(14.dp)
+                ) {
+                    Text(
+                        if (folderUriString == null) stringResource(R.string.choose_backup_folder_button)
+                        else stringResource(R.string.change_backup_folder_button)
+                    )
+                }
+
+                Spacer(Modifier.height(8.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(stringResource(R.string.enable_auto_backup_label), style = MaterialTheme.typography.bodyLarge)
+                    Switch(
+                        checked = autoBackupEnabled,
+                        enabled = folderUriString != null,
+                        onCheckedChange = { enabled ->
+                            autoBackupEnabled = enabled
+                            viewModel.setAutoBackupEnabled(enabled)
+                        },
+                        colors = SwitchDefaults.colors(checkedTrackColor = primary)
+                    )
+                }
+            }
+        }
+
         // ── Reminders ──────────────────────────────────────────────────────
         item {
             val context = LocalContext.current

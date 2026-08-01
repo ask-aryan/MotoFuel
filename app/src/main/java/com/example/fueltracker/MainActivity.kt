@@ -1,7 +1,6 @@
 package com.example.fueltracker
 
 import android.os.Bundle
-import android.content.Intent
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
@@ -111,23 +110,19 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun MainScreen(viewModel: FuelViewModel) {
     var selectedTab by remember { mutableIntStateOf(0) }
-    val context = LocalContext.current
     val vehicles by viewModel.allVehicles.collectAsState()
     val selectedVehicle by viewModel.selectedVehicle.collectAsState()
     val dashboardTitle = stringResource(R.string.nav_dashboard)
     val statsTitle = stringResource(R.string.nav_stats)
     val diaryTitle = stringResource(R.string.nav_diary)
-    val rideTitle = stringResource(R.string.nav_ride_mode)
     val settingsTitle = stringResource(R.string.nav_settings)
     val currentTitle = when (selectedTab) {
         1 -> statsTitle
         2 -> diaryTitle
-        3 -> rideTitle
         4 -> settingsTitle
         else -> dashboardTitle
     }
     val isLandscape = LocalConfiguration.current.screenWidthDp > LocalConfiguration.current.screenHeightDp
-    val onRideClick = { context.startActivity(Intent(context, RidingModeActivity::class.java)) }
 
     if (isLandscape) {
         // Landscape: content + nav rail on right
@@ -158,7 +153,6 @@ fun MainScreen(viewModel: FuelViewModel) {
             LandscapeNavRail(
                 selectedTab = selectedTab,
                 onTabSelected = { selectedTab = it },
-                onRideClick = onRideClick,
                 onSettingsClick = { selectedTab = 4 },
                 settingsTitle = settingsTitle
             )
@@ -205,11 +199,9 @@ fun MainScreen(viewModel: FuelViewModel) {
             PillNavigationBar(
                 selectedTab = selectedTab,
                 onTabSelected = { selectedTab = it },
-                onRideClick = onRideClick,
                 dashboardTitle = dashboardTitle,
                 statsTitle = statsTitle,
                 diaryTitle = diaryTitle,
-                rideTitle = rideTitle,
                 modifier = Modifier.align(Alignment.BottomCenter)
             )
         }
@@ -220,14 +212,12 @@ fun MainScreen(viewModel: FuelViewModel) {
 private fun LandscapeNavRail(
     selectedTab: Int,
     onTabSelected: (Int) -> Unit,
-    onRideClick: () -> Unit,
     onSettingsClick: () -> Unit,
     settingsTitle: String
 ) {
     val primary = MaterialTheme.colorScheme.primary
     val onPrimary = MaterialTheme.colorScheme.onPrimary
     val onSurfaceVariant = MaterialTheme.colorScheme.onSurfaceVariant
-    val surface = MaterialTheme.colorScheme.surface
     val outlineVariant = MaterialTheme.colorScheme.outlineVariant
 
     data class RailItem(val index: Int, val icon: ImageVector, val label: String)
@@ -286,26 +276,6 @@ private fun LandscapeNavRail(
 
         Spacer(Modifier.weight(1f))
 
-        // Ride mode
-        Box(
-            modifier = Modifier
-                .size(48.dp)
-                .clip(RoundedCornerShape(14.dp))
-                .background(surface)
-                .border(1.dp, outlineVariant, RoundedCornerShape(14.dp))
-                .clickable { onRideClick() },
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                Icons.Default.DirectionsBike,
-                contentDescription = "Ride",
-                tint = onSurfaceVariant,
-                modifier = Modifier.size(22.dp)
-            )
-        }
-
-        Spacer(Modifier.height(6.dp))
-
         // Settings
         Box(
             modifier = Modifier
@@ -329,11 +299,9 @@ private fun LandscapeNavRail(
 private fun PillNavigationBar(
     selectedTab: Int,
     onTabSelected: (Int) -> Unit,
-    onRideClick: () -> Unit,
     dashboardTitle: String,
     statsTitle: String,
     diaryTitle: String,
-    rideTitle: String,
     modifier: Modifier = Modifier
 ) {
     val primary = MaterialTheme.colorScheme.primary
@@ -348,8 +316,7 @@ private fun PillNavigationBar(
     val items = listOf(
         NavItem(0, Icons.Default.Home, dashboardTitle) { onTabSelected(0) },
         NavItem(1, Icons.Default.BarChart, statsTitle) { onTabSelected(1) },
-        NavItem(2, Icons.Default.MenuBook, diaryTitle) { onTabSelected(2) },
-        NavItem(-1, Icons.Default.DirectionsBike, rideTitle) { onRideClick() }
+        NavItem(2, Icons.Default.MenuBook, diaryTitle) { onTabSelected(2) }
     )
 
     // Container is fully transparent — no background here at all

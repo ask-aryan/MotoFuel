@@ -2,13 +2,4 @@
 <resources>
 
     <style name="Theme.FuelTracker" parent="android:Theme.Material.Light.NoActionBar" />
-
-    <style name="Theme.FuelTracker.RidingMode" parent="android:style/Theme.Material.NoActionBar">
-        <item name="android:windowNoTitle">true</item>
-        <item name="android:windowActionBar">false</item>
-        <item name="android:windowFullscreen">true</item>
-        <item name="android:windowLightStatusBar">false</item>
-        <item name="android:navigationBarColor">#0D0D0D</item>
-        <item name="android:statusBarColor">#0D0D0D</item>
-    </style>
 </resources>

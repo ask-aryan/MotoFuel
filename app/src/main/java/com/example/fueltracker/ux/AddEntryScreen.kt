@@ -95,7 +95,7 @@ fun AddEntryScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(Brush.linearGradient(listOf(Color(0xFF6643E0), Color(0xFF8B5CF0))))
-                    .padding(horizontal = 24.dp)
+                    .padding(horizontal = 20.dp)
                     .padding(top = 20.dp, bottom = 28.dp)
             ) {
                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
