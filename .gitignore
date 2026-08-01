@@ -24,3 +24,6 @@ local.properties
 /add_resume_project.ps1
 /Kotlin app visual redesign concept/
 /design_handoff_visual_redesign/
+
+# Release signing — never commit the keystore or its secrets
+/keystore/
